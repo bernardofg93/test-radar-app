@@ -5,7 +5,10 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, min_ios_version_supported
+ MIN_IOS_OVERRIDE = '13.0'
+ if Gem::Version.new(MIN_IOS_OVERRIDE) > Gem::Version.new(min_ios_version_supported)
+    min_ios_version_supported = MIN_IOS_OVERRIDE
+ end
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -16,6 +19,19 @@ end
 
 target 'radarAppTechnicalTest' do
   config = use_native_modules!
+  use_frameworks! :linkage => :static
+
+   pod 'GoogleAds-IMA-iOS-SDK', '~> 3.22.1'
+
+  if ENV['RNV_SAMPLE_ENABLE_ADS']
+    $RNVideoUseGoogleIMA = true
+  end
+  if ENV['RNV_SAMPLE_VIDEO_CACHING']
+    $RNVideoUseVideoCaching = true
+  end
+
+  # Flags change depending on the env values.
+  flags = get_default_flags()
 
   use_react_native!(
     :path => config[:reactNativePath],
